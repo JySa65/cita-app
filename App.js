@@ -6,18 +6,29 @@ import {
   FlatList,
   View,
   TouchableHighlight,
-  TouchableNativeFeedback,
-  Keyboard,
 } from 'react-native';
+import {useAsyncStorage} from '@react-native-async-storage/async-storage';
 
 import Quotes from './src/components/Quotes';
 import AddQuote from './src/components/AddQuote';
 
-const {useState} = React;
+const {useState, useEffect} = React;
 
 const App = () => {
   const [showForm, setShowForm] = useState(false);
   const [citas, setCitas] = useState([]);
+  const {getItem} = useAsyncStorage('@quotes');
+
+  useEffect(() => {
+    const getCitas = async () => {
+      const quotes = await getItem();
+      if (quotes) {
+        setCitas(JSON.parse(quotes));
+      }
+    };
+    getCitas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     // <TouchableNativeFeedback onPress={() => Keyboard.dismiss()}>
@@ -39,7 +50,11 @@ const App = () => {
         {showForm && (
           <>
             <Text style={styles.subtitle}>Añade un Cita</Text>
-            <AddQuote setCitas={setCitas} setShowForm={setShowForm} />
+            <AddQuote
+              setCitas={setCitas}
+              setShowForm={setShowForm}
+              citas={citas}
+            />
           </>
         )}
 
@@ -55,7 +70,7 @@ const App = () => {
               style={styles.flatList}
               data={citas}
               renderItem={({item}) => (
-                <Quotes quote={item} setCitas={setCitas} />
+                <Quotes quote={item} setCitas={setCitas} citas={citas} />
               )}
               keyExtractor={(item) => item.id.toString()}
             />

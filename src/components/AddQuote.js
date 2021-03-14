@@ -10,13 +10,14 @@ import {
   ScrollView,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import {useAsyncStorage} from '@react-native-async-storage/async-storage';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 
 const {useState} = React;
 
-const AddQuote = ({setCitas, setShowForm}) => {
+const AddQuote = ({setCitas, setShowForm, citas}) => {
   const [data, setData] = useState({
     patient: '',
     owner: '',
@@ -36,6 +37,7 @@ const AddQuote = ({setCitas, setShowForm}) => {
   };
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+  const {setItem} = useAsyncStorage('@quotes');
 
   const handleOnChangeText = (name) => (text) => {
     setData((prev) => ({...prev, [name]: text}));
@@ -61,16 +63,17 @@ const AddQuote = ({setCitas, setShowForm}) => {
     }
   };
 
-  const handlerOnPress = () => {
+  const handlerOnPress = async () => {
     try {
       Object.keys(data).forEach((item) => {
         if (data[item].trim() === '') {
           throw `${dataSpanish[item]} es requerido`;
         }
       });
-      setCitas((prev) => {
-        return [{...data, id: +new Date()}, ...prev];
-      });
+
+      const quotes = [{...data, id: +new Date()}, ...citas];
+      await setItem(JSON.stringify(quotes));
+      await setCitas(quotes);
       Object.keys(data).forEach((item) => {
         setData((prev) => ({...prev, [item]: ''}));
       });

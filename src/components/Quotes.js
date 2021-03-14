@@ -1,9 +1,13 @@
 import * as React from 'react';
 import {View, Text, StyleSheet, TouchableHighlight} from 'react-native';
+import {useAsyncStorage} from '@react-native-async-storage/async-storage';
 
-const Quotes = ({quote, setCitas}) => {
-  const handlerOnPress = (id) => {
-    setCitas((prev) => prev.filter((item) => item.id !== id));
+const Quotes = ({quote, setCitas, citas}) => {
+  const {setItem} = useAsyncStorage('@quotes');
+  const handlerOnPress = async (id) => {
+    const quotes = citas.filter((item) => item.id !== id);
+    await setCitas(quotes);
+    await setItem(JSON.stringify(quotes));
   };
 
   return (
